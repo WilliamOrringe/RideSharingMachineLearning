@@ -1,3 +1,4 @@
+from Drivers import Drivers
 from Node import Node
 
 
@@ -12,14 +13,19 @@ def initialise_nodes():
     for index in range(10):
         nodes.append(Node(index))
     for index in range(9):
-        nodes[index].give_neighbours([nodes[index+1], 1])
+        nodes[index].give_neighbours([nodes[index + 1], 1])
     nodes[9].give_neighbours([nodes[0], 1])
     return nodes
 
 
+def initialise_drivers(number_of_drivers, capacity):
+    drivers = []
+    for index in range(number_of_drivers):
+        drivers.append(Drivers(capacity))
+    return drivers
+
 def print_graph(nodes):
-    for node in nodes:
-        print(str(node))
+    print(nodes)
 
 
 if __name__ == "__main__":
