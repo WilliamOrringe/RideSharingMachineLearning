@@ -1,3 +1,8 @@
+import random
+
+from Node import Node
+
+
 class Drivers:
     def __init__(self, capacity):
         self.position = []  # [[One node, Second node], Weight away from first node]
@@ -10,6 +15,16 @@ class Drivers:
 
     def update_position(self):
         self.position[1] += self.speed
+        distance = self.position[0][0].give_distance_from_neighbour(self.position[0][1])
+        if self.position[1] == distance:
+            current_position = self.position[0][1]
+            next_position = self.get_next_node(current_position)
+            weight = current_position.give_distance_from_neighbour(next_position)
+            self.position = [[current_position, next_position], weight]
+
+    def get_next_node(self, current_node: Node):
+        neighbours_list = current_node.get_neighbours()
+        return random.choice(neighbours_list)
 
     def get_position(self):
         return self.position
