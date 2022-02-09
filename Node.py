@@ -1,3 +1,6 @@
+import random
+
+
 class Node:
     def __init__(self, index: int):
         self.index = index
@@ -5,6 +8,10 @@ class Node:
 
     def give_neighbours(self,  neighbours: []):
         self.neighbours.append(neighbours)  # [[Node, Weight], [Node2, Weight2], ...]
+
+    def give_random_neighbour(self):
+        choice = random.choice(self.neighbours)
+        return choice[0]
 
     def give_distance_from_neighbour(self, neighbour):
         return self.neighbours.index(neighbour)[1]

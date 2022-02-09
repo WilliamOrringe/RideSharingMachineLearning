@@ -13,6 +13,13 @@ class Drivers:
     def set_position(self, position):
         self.position = position
 
+    def set_random_position(self, nodes: [Node]):
+        nodes = []
+        first_choice = random.choice(nodes)
+        second_choice = first_choice.give_random_neighbour()[0]
+        weight = first_choice.give_random_neighbour()[1]
+        self.position = [[first_choice, second_choice], weight]
+
     def update_position(self):
         self.position[1] += self.speed
         distance = self.position[0][0].give_distance_from_neighbour(self.position[0][1])
@@ -33,4 +40,4 @@ class Drivers:
         return self.riders
 
     def __str__(self):
-        return self.position
+        return str("hi")

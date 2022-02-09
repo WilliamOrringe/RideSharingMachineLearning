@@ -19,15 +19,21 @@ def initialise_nodes():
 
 
 def initialise_drivers(number_of_drivers, capacity):
-    drivers = []
+    drivers2 = []
     for index in range(number_of_drivers):
-        drivers.append(Drivers(capacity))
-    return drivers
+        drivers2.append(Drivers(capacity))
+    return drivers2
 
-def print_graph(nodes):
+
+def print_graph(nodes, drivers2):
     print(nodes)
+    print(drivers2)
 
 
 if __name__ == "__main__":
     graph = initialise_nodes()
-    print_graph(graph)
+    drivers = initialise_drivers(5, 5)
+    for driver in drivers:
+        driver.set_random_position(graph)
+        print(driver.get_position())
+    print_graph(graph, drivers)
