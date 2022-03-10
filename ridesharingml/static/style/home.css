@@ -1,4 +1,7 @@
-#map { height: 180px; }
+#map {
+    height: calc(100vh - 1em);
+}
 body{
+    height:100%;
 background: cornflowerblue;
 }

@@ -4,4 +4,4 @@ from django.http import HttpResponse
 
 # Create your views here.
 def show_leaflet(request):
-    return render(request, 'ridesharing/index.html')
+    return render(request, 'index.html')
