@@ -24,21 +24,40 @@ from Environment import Environment
 from gym.utils.env_checker import check_env
 
 
+def generate_actions_random(env):
+    actions = []
+    all_actions = env.generate_all_actions()
+    for action in all_actions:
+        actions.append(random.choice(tuple(action)))
+    return actions
+
+
+def get_q_values(q, state, action=None):
+    try:
+        if action is None:
+            return q[state, :]
+        else:
+            return q[state, action]
+    except():
+        return 0
+
+
+def set_q_values(q, state, action, value):
+    q[state, action] = value
+
+
 def setup():
     env = Environment()
     # check_env(env)
     # env = gym.make("Taxi-v3")
-    # env.render()
+    env.render()
     action_size = env.action_space.n
     print("Action size ", action_size)
     # state_size = env.observation_space.n
     state_size = env.observation_space.shape[0]
     print("State size ", state_size)
-    Q = []
-    for state in env.states:
-        for action in action_size:
-            Q.append([state, action])
-    print(Q)
+    q = []
+    print(q)
     total_episodes = 2  # Total episodes
     max_steps = 30  # Max steps per episode
     gamma = 0.618  # Discounting rate
@@ -53,14 +72,15 @@ def setup():
         for step in range(max_steps):  # step is current_time
             exp_exp_tradeoff = random.uniform(0, 1)
             if exp_exp_tradeoff > epsilon:
-                action = np.argmax(Q[state, :])
+                action = np.argmax(get_q_values(q, state))
             else:
-                action = env.action_space.sample()
+                # generate new action
+                action = generate_actions_random(env)
             new_state, reward, info = env.step(action)
-            secondary = reward + gamma * np.max(Q[new_state, :]) - Q[state, action]
-            Q[state, action] = Q[state, action] * secondary
+            secondary = reward + gamma * np.max(get_q_values(q, state))
+            set_q_values(q, state, action, (get_q_values(q, state, action) *
+                                            (secondary - get_q_values(q, state, action))))
             state = new_state
-            print(Q[state, action])
         epsilon = min_epsilon + (max_epsilon - min_epsilon) * np.exp(-decay_rate * episode)
         print(epsilon)
 

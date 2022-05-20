@@ -1,7 +1,7 @@
 class Rider:
     def __init__(self, start=10, destination=101):
         self.start_position = start  # which node
-        self.numberOfRiders = 1
+        self.number_of_riders = 1
         self.destination = destination  # Some area code
         self.wait_time = 0
         self.in_car = False
