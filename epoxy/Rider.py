@@ -11,7 +11,7 @@ class Rider:
         if self.wait_time >= self.bound:
             return self.wait_time
         if not self.in_car:
-            self.wait_time += 1 * self.numberOfRiders
+            self.wait_time += 1 * self.number_of_riders
 
     def picked_up(self):
         self.in_car = True

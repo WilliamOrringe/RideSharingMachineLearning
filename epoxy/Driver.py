@@ -31,8 +31,8 @@ class Driver:
 
     def update(self):
         self.actual_time += 1
-        if len(self.riders) + self.riders_at_location.number_of_riders() < self.capacity:
-            self.riders += self.riders_at_location
+        # if len(self.riders) + self.riders_at_location[0].number_of_riders() < self.capacity:
+        #     self.riders += self.riders_at_location
         if self.on_route:
             if self.current_time == self.actual_time:
                 self.drop_riders()

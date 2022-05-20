@@ -54,9 +54,9 @@ class StateGraph:
         self.time = time
         self.action = actions
         for driver in self.drivers:
-            driver.give_rider_pos(self.any_riders_at_pos(self.driver.position))
+            driver.give_rider_pos(self.any_riders_at_pos(driver.position))
         for i, action in enumerate(actions):
-            self.drivers[i].use_action(action)
+            self.drivers[i].use_action(action, self.graph)
         self.update_riders()
         return self
 
