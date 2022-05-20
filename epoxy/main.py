@@ -20,49 +20,49 @@ import random
 # end for
 # Update the state vector Ωt+1.
 # end for
+from Environment import Environment
+from gym.utils.env_checker import check_env
 
 
 def setup():
-    env = gym.make("Taxi-v3")
-    env.render()
+    env = Environment()
+    # check_env(env)
+    # env = gym.make("Taxi-v3")
+    # env.render()
     action_size = env.action_space.n
     print("Action size ", action_size)
-    state_size = env.observation_space.n
+    # state_size = env.observation_space.n
+    state_size = env.observation_space.shape[0]
     print("State size ", state_size)
-    qtable = np.zeros((state_size, action_size))
-    print(qtable)
-    total_episodes = 50000  # Total episodes
-    total_test_episodes = 100  # Total test episodes
-    max_steps = 99  # Max steps per episode
-    learning_rate = 0.7  # Learning rate
+    Q = []
+    for state in env.states:
+        for action in action_size:
+            Q.append([state, action])
+    print(Q)
+    total_episodes = 2  # Total episodes
+    max_steps = 30  # Max steps per episode
     gamma = 0.618  # Discounting rate
-    # Exploration parameters
     epsilon = 1.0  # Exploration rate
     max_epsilon = 1.0  # Exploration probability at start
     min_epsilon = 0.01  # Minimum exploration probability
-    decay_rate = 0.01  # Exponential decay rate for exploration prob
-    # 2 For life or until learning is stopped
+    decay_rate = 0.01  # Exponential decay rate for environment prob
     for episode in range(total_episodes):
+        print(episode)
         # Reset the environment
         state = env.reset()
-        step = 0
-        done = False
-        for step in range(max_steps):
+        for step in range(max_steps):  # step is current_time
             exp_exp_tradeoff = random.uniform(0, 1)
             if exp_exp_tradeoff > epsilon:
-                action = np.argmax(qtable[state, :])
+                action = np.argmax(Q[state, :])
             else:
                 action = env.action_space.sample()
-            new_state, reward, done, info = env.step(action)
-            qtable[state, action] = qtable[state, action] + learning_rate * (reward + gamma *
-                                                                             np.max(
-                                                                                 qtable[new_state,
-                                                                                 :]) - qtable[
-                                                                                 state, action])
+            new_state, reward, info = env.step(action)
+            secondary = reward + gamma * np.max(Q[new_state, :]) - Q[state, action]
+            Q[state, action] = Q[state, action] * secondary
             state = new_state
-            if done:
-                break
+            print(Q[state, action])
         epsilon = min_epsilon + (max_epsilon - min_epsilon) * np.exp(-decay_rate * episode)
+        print(epsilon)
 
 
 if __name__ == "__main__":

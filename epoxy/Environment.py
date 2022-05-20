@@ -5,45 +5,47 @@ import numpy as np
 import matplotlib.pyplot as plt
 import PIL.Image as Image
 import gym
+import csv
 import random
 
 from gym import spaces
 import time
 
 
+def get_ride_data():
+    file = open('../data/cleandata/clean_data.csv', 'r')
+    csv_reader = csv.DictReader(file)
+    file_data = []
+    for row in csv_reader:
+        file_data.append(row)
+    return file_data[:10]
+
+
 class Environment(gym.Env):
+    def __init__(self):
+        super(Environment, self).__init__()
+        self.number_drivers = 500
+        self.number_riders = 10
+        self.current_time = 0
+        self.ride_data = get_ride_data()
+        self.state = State(self.number_drivers, self.ride_data, self.current_time)
+        self.action_space = spaces.Discrete(6, )
+        # Define a 2-D observation space
+        self.observation_shape = (600, 800, 3)
+        self.observation_space = spaces.Discrete(6,)
+        self.length_of_state = len(self.ride_data[0])
+        self.new_obs_space = [i for i in range(self.length_of_state * 10)]
+
     def reset(self):
         self.__init__()
+        return 0
 
-    def render(self, mode="human"):
+    def render(self, **kwargs):
         pass
 
     def step(self, action):
-        pass
-
-    def __init__(self):
-        self.number_drivers = 5
-        self.number_riders = 10
-        self.drivers = [Driver(2) for _ in range(self.number_drivers)]
-        self.riders = [Rider() for _ in range(self.number_riders)]
-        self.state = State(self.drivers, self.riders)
-
-    def state_space(self):
-        pass
-
-    def update_state_space(self):
-        for riders in self.riders:
-            riders.update_rider()
-
-    def make_action(self, action):
-        reward = 0
-        state = self.drivers
-        end_condition = False
-        # Run simulation for One Frame
-        return reward, state, end_condition
-
-    def get_driver_action(self, driver):
-        position = driver.get_position()
-
-    def get_actions(self):
-        return [self.drivers]
+        self.state = self.state.perform_action(action, self.current_time)
+        self.current_time += 1
+        reward = self.state.evaluate_state()
+        info = "hi"
+        return self.state, reward, info

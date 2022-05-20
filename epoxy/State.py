@@ -3,34 +3,56 @@ import networkx as nx
 import osmnx as ox
 
 from Rider import Rider
+from Driver import Driver
 
 
 class State:
-    def __init__(self, drivers, riders, ride_data):
-        self.drivers = drivers
-        self.riders = riders
-        self.states = np.ndarray([2, 3])
-        self.set_drivers_random()
+    def __init__(self, number_drivers, ride_data, current_time):
+        self.number_drivers = number_drivers
+        self.drivers = self.set_drivers_random()
+        self.time = current_time
         self.ride_data = ride_data
+        self.riders = self.get_new_riders()
+        self.state = [self.drivers, self.riders, self.time]
+        self.missed = 0
+        self.action = 0
 
     def set_drivers_random(self):
-        for driver in self.drivers:
-            driver.set_random_position()
+        drivers = []
+        for _ in range(self.number_drivers):
+            drivers.append(Driver(1))
+        return drivers
 
-    def get_new_riders(self, time):
+    def set_time(self, time):
+        self.time = time
+
+    def get_new_riders(self):
         new_riders = []
         for value in self.ride_data:
-            if value["pickup_time"] == time:
+            if int(value["pickup_time"]) <= self.time+100:
                 new_riders.append(Rider(value["PULocationID"], value["DOLocationID"]))
         return new_riders
 
-    def update_riders(self, time):
+    def update_riders(self):
         updated_riders = []
         for rider in self.riders:
-            flag = rider.update_rider()
+            flag = rider.update()
             if flag:
                 updated_riders.append(rider)
-        updated_riders += self.get_new_riders(time)
+            else:
+                self.missed += rider.get_wait_time()
+        updated_riders += self.get_new_riders()
 
-    def get_network(self):
-        pass
+    def evaluate_state(self):
+        total = 0
+        for rider in self.riders:
+            total += rider.get_wait_time()
+        return total + self.missed
+
+    def perform_action(self, action, time):
+        self.time = time
+        self.action = action
+        # self.drivers.use_action(action[0])
+        # self.riders.use_action(action[1])
+        self.update_riders()
+        return self

@@ -7,7 +7,7 @@ class Rider:
         self.in_car = False
         self.bound = 10
 
-    def update_rider(self):
+    def update(self):
         if self.wait_time >= self.bound:
             return self.wait_time
         if not self.in_car:
@@ -15,3 +15,11 @@ class Rider:
 
     def picked_up(self):
         self.in_car = True
+
+    def get_wait_time(self):
+        return self.wait_time
+
+    def use_action(self, action):
+        self.update()
+        if action == 0:
+            pass
