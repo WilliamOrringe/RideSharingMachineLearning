@@ -1,5 +1,7 @@
 import networkx as nx
 import pandas as pd
+
+from Driver import Driver
 from State import State
 import gym
 import csv
@@ -9,34 +11,37 @@ from epoxy.stategraph import StateGraph
 
 
 def get_ride_data():
-    file = open('../data/cleandata/clean_data.csv', 'r')
+    file = open('../data/cleandata/clean_data2.csv', 'r')
     csv_reader = csv.DictReader(file)
     file_data = []
     for row in csv_reader:
         file_data.append(row)
-    return file_data[:1000]
+    return file_data[:30]
 
 
 def generate_graph():
-    df = pd.read_csv('../data/cleandata/adjacent_zone.csv')
-    G = nx.MultiDiGraph()
-    for j in range(len(df)):
+    df = pd.read_csv('../data/cleandata/adjacent_zone2.csv')
+    number_zones = 263
+    G = nx.Graph()
+    for j in range(number_zones):
         G.add_node(j)
     for i in range(len(df)):
         G.add_edge(df.at[i, 'zone1'], df.at[i, 'zone2'])
-    print(G)
     return G
 
 
 class Environment(gym.Env):
-    def __init__(self):
+    def __init__(self, number_drivers=1):
         super(Environment, self).__init__()
-        self.number_drivers = 1
+        self.number_drivers = number_drivers
         self.current_time = 0
         self.ride_data = get_ride_data()
         # self.state = State(self.number_drivers, self.ride_data, self.current_time)
+        graph_data = generate_graph()
         self.state = StateGraph(self.number_drivers, self.ride_data, self.current_time,
-                                generate_graph())
+                                graph_data)
+        node_list = self.find_nodes_with_paths()
+        self.state.set_drivers_random(node_list)
         self.action_space = spaces.Discrete(6, )
         # Actions = [[]]
         # For one Driver [two things either give a node to go to, doNothing]
@@ -51,8 +56,15 @@ class Environment(gym.Env):
         return 0
 
     def render(self, **kwargs):
+        print("------------------------")
+        print("CURRENT TIME = ", self.current_time)
         for i, driver in enumerate(self.state.drivers):
-            print("For Driver : " + str(i) + ", zone=" + str(driver.get_position()))
+            print("Drivers : " + str(i) + ", zone=" + str(driver.get_position()))
+        print("++++++++++++++++++++++++")
+        for i, rider in enumerate(self.state.riders):
+            print("Riders : " + str(rider.rider_id) + ", zone=" + str(rider.start_position) +
+                  ", time = " + str(rider.start_time) + ", waiting for " +
+                  str(rider.get_wait_time()) + ", end_zone=" + str(rider.destination))
         print("------------------------")
         print("Reward = " + str(self.state.evaluate_state()))
 
@@ -71,6 +83,14 @@ class Environment(gym.Env):
         return actions
 
     def generate_actions(self, driver):
-        return nx.descendants(self.state.graph, driver.get_position()) | {0}
+        return nx.descendants(self.state.graph, driver.get_position()) | {0} | {True} | {False}
 
+    def find_nodes_with_paths(self):
+        nodes_with_paths = []
+        for j in range(len(self.state.graph.nodes)):
+            driver = Driver(1, [j])
+            value = self.generate_actions(driver)
+            if len(tuple(value)) > 2:
+                nodes_with_paths.append(j)
+        return nodes_with_paths
 

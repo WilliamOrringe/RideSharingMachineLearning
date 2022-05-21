@@ -2,10 +2,12 @@ import random
 
 import networkx as nx
 
+from Rider import Rider
+
 
 class Driver:
-    def __init__(self, capacity):
-        self.position = random.randint(2, 262)
+    def __init__(self, capacity, possible_nodes):
+        self.position = random.choice(possible_nodes)
         self.capacity = capacity
         self.riders = []
         self.on_route = False
@@ -15,7 +17,7 @@ class Driver:
         self.actual_time = 0
         self.available = True
         self.update_value = False
-        self.riders_at_location = None
+        self.riders_at_location = []
 
     def set_position(self, position):
         self.position = position
@@ -42,10 +44,18 @@ class Driver:
             self.wait_time += 1
 
     def drop_riders(self):
-        self.riders = []
+        temp_store = []
+        get_rid_of = []
+        for rider in self.riders:
+            if rider.destination != self.position:
+                temp_store.append(rider)
+            else:
+                get_rid_of.append(rider)
+        self.riders = temp_store
         self.wait_time = 0
         self.available = True
         self.on_route = False
+        return get_rid_of
 
     def get_position(self):
         return self.position
@@ -60,16 +70,27 @@ class Driver:
         return self.wait_time
 
     def navigate_to(self, target, graph):
-        self.position = nx.shortest_path(graph, source=self.position, target=target)[0]
-        self.on_route = True
+        self.position = nx.shortest_path(graph, source=self.position, target=target)[1]
+        self.on_route = False
         self.available = False
 
-    def use_action(self, action, graph):
-        self.update()
+    def pick_up(self, riders_at_loc: [Rider]):
+        length_riders = len(self.riders)
+        i = 0
+        while self.capacity < length_riders and i < len(riders_at_loc):
+            if length_riders + len(riders_at_loc[i]) <= self.capacity:
+                self.riders.append(riders_at_loc[i])
+            i += 1
+
+    def use_action(self, action, graph, riders_at_location=None):
+        if riders_at_location is None:
+            riders_at_location = []
         if action != 0:  # if not nothing action
             self.navigate_to(action, graph)
-
-    def __str__(self):
-        return str("hi")
+        elif action:  # pickup
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            self.pick_up(riders_at_location)
+        else:  # drop_off
+            return self.drop_riders()
 
 

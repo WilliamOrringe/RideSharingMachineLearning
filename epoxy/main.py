@@ -32,7 +32,7 @@ def generate_actions_random(env):
     return actions
 
 
-def get_q_values(q, state, action=None):
+def get_q_values(q, state: Environment, action=None):
     try:
         if action is None:
             return q[state, :]
