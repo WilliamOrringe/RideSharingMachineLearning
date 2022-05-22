@@ -2,11 +2,11 @@ import random
 
 import networkx as nx
 
-from Rider import Rider
+from epoxy.Rider import Rider
 
 
 class Driver:
-    def __init__(self, capacity, possible_nodes):
+    def __init__(self, capacity, possible_nodes, id):
         self.position = random.choice(possible_nodes)
         self.capacity = capacity
         self.riders = []
@@ -18,6 +18,7 @@ class Driver:
         self.available = True
         self.update_value = False
         self.riders_at_location = []
+        self.driver_id = id
 
     def set_position(self, position):
         self.position = position
@@ -32,27 +33,19 @@ class Driver:
         self.riders_at_location = riders
 
     def update(self):
-        self.actual_time += 1
-        # if len(self.riders) + self.riders_at_location[0].number_of_riders() < self.capacity:
-        #     self.riders += self.riders_at_location
-        if self.on_route:
-            if self.current_time == self.actual_time:
-                self.drop_riders()
-            elif self.current_time == 0:
-                self.current_time = self.riders[0]["pickup_time"] + self.actual_time
-        else:
-            self.wait_time += 1
+        self.wait_time += 1
+        for rider in self.riders:
+            self.wait_time += (rider.wait_time * 0.5)
 
     def drop_riders(self):
         temp_store = []
         get_rid_of = []
         for rider in self.riders:
-            if rider.destination != self.position:
+            if int(rider.destination) != int(self.position):
                 temp_store.append(rider)
             else:
                 get_rid_of.append(rider)
         self.riders = temp_store
-        self.wait_time = 0
         self.available = True
         self.on_route = False
         return get_rid_of
@@ -77,20 +70,42 @@ class Driver:
     def pick_up(self, riders_at_loc: [Rider]):
         length_riders = len(self.riders)
         i = 0
-        while self.capacity < length_riders and i < len(riders_at_loc):
+        while self.capacity > length_riders and i < len(riders_at_loc):
             if length_riders + len(riders_at_loc[i]) <= self.capacity:
-                self.riders.append(riders_at_loc[i])
+                if not riders_at_loc[i].in_car:
+                    self.riders.append(riders_at_loc[i])
+                    self.riders[-1].set_in_car(True)
             i += 1
 
     def use_action(self, action, graph, riders_at_location=None):
         if riders_at_location is None:
             riders_at_location = []
-        if action != 0:  # if not nothing action
-            self.navigate_to(action, graph)
-        elif action:  # pickup
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        if isinstance(action, bool) and action:  # pickup
             self.pick_up(riders_at_location)
-        else:  # drop_off
+        elif isinstance(action, bool) and not action:  # drop_off
             return self.drop_riders()
+        elif action != 0:  # if not nothing action
+            self.navigate_to(action, graph)
+        self.update()
+
+    def __str__(self):
+        return "DriverID=" + str(self.driver_id) + ", zone=" + str(self.position) + ', riders=' + \
+               str(self.riders) + ', wait_time=' + str(self.wait_time)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def arrays(self):
+        riders_array = []
+        for rider in self.riders:
+            riders_array.append(rider.rider_id)
+        return [self.position, riders_array, self.wait_time]
+
+    def to_dict(self):
+        riders_array = []
+        for rider in self.riders:
+            riders_array.append(rider.rider_id)
+        return {'position': self.position, 'riderIDs': [riders_array], 'wait_time': self.wait_time}
+
 
 

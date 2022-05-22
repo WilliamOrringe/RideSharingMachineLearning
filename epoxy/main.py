@@ -20,6 +20,8 @@ import random
 # end for
 # Update the state vector Ωt+1.
 # end for
+from gym.wrappers import FlattenObservation
+
 from Environment import Environment
 from gym.utils.env_checker import check_env
 
@@ -51,12 +53,13 @@ def setup():
     # check_env(env)
     # env = gym.make("Taxi-v3")
     env.render()
-    action_size = env.action_space.n
+    action_size = env.action_space.shape
     print("Action size ", action_size)
     # state_size = env.observation_space.n
-    state_size = env.observation_space.shape[0]
+    env = FlattenObservation(env)
+    state_size = env.observation_space.shape
     print("State size ", state_size)
-    q = []
+    q = [[]]
     print(q)
     total_episodes = 2  # Total episodes
     max_steps = 30  # Max steps per episode

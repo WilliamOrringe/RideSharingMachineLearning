@@ -1,11 +1,11 @@
 import networkx as nx
 import pandas as pd
-
-from Driver import Driver
-from State import State
+import numpy as np
+from epoxy.Driver import Driver
+# from State import State
 import gym
 import csv
-from gym import spaces
+from gym.spaces import Box, Dict, Discrete, MultiDiscrete
 
 from epoxy.stategraph import StateGraph
 
@@ -42,29 +42,31 @@ class Environment(gym.Env):
                                 graph_data)
         node_list = self.find_nodes_with_paths()
         self.state.set_drivers_random(node_list)
-        self.action_space = spaces.Discrete(6, )
-        # Actions = [[]]
-        # For one Driver [two things either give a node to go to, doNothing]
-        # Define a 2-D observation space
-        self.observation_shape = (600, 800, 3)
-        self.observation_space = spaces.Space(self.observation_shape)
-        self.length_of_state = len(self.ride_data[0])
-        self.new_obs_space = [i for i in range(self.length_of_state * 10)]
+        self.number_riders = len(self.ride_data)
+        self.number_iterations = 100
+        self.number_zones = 263
+        self.action_space = Box(-2, self.number_zones, [1, number_drivers], dtype=int)
+        driver = Dict(position=Discrete(self.number_zones + 3),
+                      riders=Box(0, self.number_riders, [1, self.number_riders], dtype=int),
+                      wait_time=Discrete(self.number_iterations))
+        rider = Dict(rider_id=Discrete(self.number_iterations), start_pos=Discrete(self.number_zones),
+                     start_time=Discrete(self.number_iterations), wait_time=Discrete(
+                self.number_iterations),
+                     destination=Discrete(self.number_zones), in_car=Discrete(1))
+        self.observation_space = Dict(driver=driver, rider=rider)
 
     def reset(self):
         self.__init__()
-        return 0
+        return self.state.to_dict()
 
     def render(self, **kwargs):
         print("------------------------")
         print("CURRENT TIME = ", self.current_time)
-        for i, driver in enumerate(self.state.drivers):
-            print("Drivers : " + str(i) + ", zone=" + str(driver.get_position()))
+        for driver in self.state.drivers:
+            print(driver)
         print("++++++++++++++++++++++++")
-        for i, rider in enumerate(self.state.riders):
-            print("Riders : " + str(rider.rider_id) + ", zone=" + str(rider.start_position) +
-                  ", time = " + str(rider.start_time) + ", waiting for " +
-                  str(rider.get_wait_time()) + ", end_zone=" + str(rider.destination))
+        for rider in self.state.riders:
+            print(rider)
         print("------------------------")
         print("Reward = " + str(self.state.evaluate_state()))
 
@@ -73,7 +75,10 @@ class Environment(gym.Env):
         self.current_time += 1
         reward = self.state.evaluate_state()
         info = "hi"
-        return self.state, reward, info
+        return self._get_obs(), reward, False, info
+
+    def _get_obs(self):
+        return self.state.to_dict()
 
     def generate_all_actions(self):
         drivers = self.state.drivers
@@ -88,7 +93,7 @@ class Environment(gym.Env):
     def find_nodes_with_paths(self):
         nodes_with_paths = []
         for j in range(len(self.state.graph.nodes)):
-            driver = Driver(1, [j])
+            driver = Driver(1, [j], j)
             value = self.generate_actions(driver)
             if len(tuple(value)) > 2:
                 nodes_with_paths.append(j)

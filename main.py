@@ -1,4 +1,4 @@
-from Drivers import Drivers
+from Driver import Driver
 from Node import Node
 
 
@@ -21,7 +21,7 @@ def initialise_nodes():
 def initialise_drivers(number_of_drivers, capacity):
     drivers2 = []
     for index in range(number_of_drivers):
-        drivers2.append(Drivers(capacity))
+        drivers2.append(Driver(capacity, [i for i in range(264)]))
     return drivers2
 
 

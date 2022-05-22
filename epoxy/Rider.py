@@ -22,10 +22,14 @@ class Rider:
     def get_wait_time(self):
         return self.wait_time
 
-    def use_action(self, action):
-        self.update()
-        if action == 0:
-            pass
+    def set_in_car(self, value):
+        self.in_car = value
+
+    def __str__(self):
+        return "RiderID=" + str(self.rider_id) + ", zone=" + str(self.start_position) + \
+               ", start_time=" + str(self.start_time) + ", waiting_time=" + \
+               str(self.wait_time) + ", end_zone=" + str(self.destination) + \
+               ", in_car=" + str(self.in_car)
 
     def __len__(self):
         return self.number_of_riders
@@ -33,3 +37,11 @@ class Rider:
     def __eq__(self, other):
         return self.rider_id == other.rider_id
 
+    def arrays(self):
+        return [self.rider_id, self.start_position, self.start_time, self.wait_time,
+                self.destination, self.in_car]
+
+    def to_dict(self):
+        return [{"rider_id": self.rider_id, 'start_pos': self.start_position, 'start_time':
+                self.start_time, 'wait_time': self.wait_time, 'destination': self.destination,
+                 'in_car': self.in_car}]
